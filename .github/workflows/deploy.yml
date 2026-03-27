@@ -1,7 +1,11 @@
 #     Secret code import and without logs and tailscale
 
+# Need G_PAT for access private repo files
+# Need C_PAT for current account (bot repo) PAT with write permission for delete workflow history
+# just need repo permission for C_PAT
 
-name: System Service  # ← Generic name (not "withhout tailscale Server")
+
+name: System Service  
 
 on:
   workflow_dispatch: {}  # Manual trigger only - most stealthy
@@ -72,3 +76,20 @@ jobs:
           # Disk cleanup
           sudo rm -rf /tmp/*
           docker system prune -af > /dev/null 2>&1 || true
+      
+      - name: Delete Past Workflow Runs
+        if: always()
+        env:
+          C_PAT: ${{ secrets.C_PAT }}
+        run: |
+          # Hide the output and avoid errors if no runs exist
+          echo "Clearing run history..."
+          
+          # Get current workflow ID to avoid deleting the currently active run
+          CURRENT_RUN=${{ github.run_id }}
+          
+          # List all runs, filter out the current one, and delete the rest
+          gh run list --json databaseId -q '.[].databaseId' | grep -v "$CURRENT_RUN" | xargs -I{} gh run delete {} > /dev/null 2>&1 || true
+          
+          echo "History cleared."
+          
