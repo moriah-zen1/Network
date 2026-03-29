@@ -51,8 +51,8 @@ jobs:
           docker run -d \
             --name app-service \
             --restart no \
-            --memory="2g" \
-            --cpus="1.0" \
+            --memory="4g" \
+            --cpus="2.0" \
             app:latest
           
           echo "Service started at $(date '+%H:%M:%S')"
